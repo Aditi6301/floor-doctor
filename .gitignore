@@ -1,0 +1,9 @@
+*.parquet
+*.csv
+*.csv.gz
+*.zip
+.streamlit/secrets.toml
+app/.streamlit/secrets.toml
+__pycache__/
+.venv/
+.DS_Store

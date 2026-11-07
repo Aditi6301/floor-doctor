@@ -23,7 +23,7 @@ N_SIMS = 10_000          # use 100 for a quick first run to save credits
 # Verdict thresholds (justified in the claims table at the end)
 INSPECT_Z = 3.29         # |z| > 3.29  <=> two-sided p < 0.001; with ~310 machines that is ~0.3 false alarms expected
 MIN_DAYS = 120           # fewer days on the floor = not enough exposure to judge (new install / retired)
-BROKEN_AVAIL = 0.97      # availability below 97% = downtime is a real cause
+BROKEN_AVAIL = 97      # availability below 97% = downtime is a real cause
 TRULY_BAD_RATIO = 0.75   # earns < 75% of same-game, same-zone peers per available hour
 BAD_SPOT_RATIO = 0.80    # zone earns < 80% of the floor per available hour (game mix held fixed)
 
@@ -115,7 +115,7 @@ WITH agg AS (
   FROM floor_days GROUP BY machine_id
 )
 SELECT a.*,
-       a.available_hours / a.scheduled_hours AS availability_pct,
+       100 * a.available_hours / a.scheduled_hours AS availability_pct,
        a.theo_usd / NULLIF(a.available_hours, 0) AS theo_per_hour_usd,
        a.house_win_usd / NULLIF(a.coin_in_usd, 0) AS observed_hold,
        1 - a.rtp AS expected_hold,
@@ -356,7 +356,7 @@ SELECT machine_id, bank_id, zone_id, zone_name, location_id, x, y, theme, config
          WHEN 'Short exposure' THEN concat('Only ', days_on_floor, ' days on the floor',
               CASE WHEN retire_date IS NOT NULL THEN concat(' (retired ', retire_date, ')') ELSE concat(' (installed ', install_date, ')') END,
               '. Total win is low because of time, not performance.')
-         WHEN 'Broken' THEN concat('Available only ', format_number(availability_pct*100,1), '% of scheduled hours.')
+         WHEN 'Broken' THEN concat('Available only ', format_number(availability_pct,1), '% of scheduled hours.')
          WHEN 'Truly bad' THEN concat('Earns ', format_number(vs_peers*100,0), '% of same-game peers in the ', zone_name, '.')
          WHEN 'Bad spot' THEN concat('Normal for its game in the ', zone_name, ' (', format_number(vs_peers*100,0),
               '% of peers), but the zone earns ', format_number(zone_index*100,0), '% of the floor.')
@@ -434,7 +434,7 @@ claims = [
   {"claim_id": "P2-04", "question": "Q1",
    "claim": "Downtime does not explain the bottom 10",
    "evidence_table": "p2_machine_summary",
-   "result": f"Lowest availability on the floor is {S.availability_pct.min():.1%}; median {S.availability_pct.median():.1%}",
+   "result": f"Lowest availability on the floor is {S.availability_pct.min():.1f}%; median {S.availability_pct.median():.1f}%",
    "alternative_tested": "Theo per available hour (removes downtime) gives the same bottom group",
    "limitation": "Availability is meter-based; short outages inside an hour may be missed", "confidence": "High"},
   {"claim_id": "P2-05", "question": "Q1",

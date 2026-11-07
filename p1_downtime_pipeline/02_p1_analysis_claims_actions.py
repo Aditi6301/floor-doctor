@@ -1,4 +1,8 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "6"
+# ///
 # MAGIC %md
 # MAGIC # 02 · P1 analysis: downtime (Q3), comps (Q5), claims and priced actions
 # MAGIC Normal notebook (run after the pipeline). Reads the pipeline's gold tables and saves:
@@ -18,7 +22,10 @@ import numpy as np
 import pandas as pd
 from pyspark.sql import functions as F
 
-SCHEMA = spark.conf.get("p1.source_schema", "workspace.casino")
+try:
+    SCHEMA = spark.conf.get("p1.source_schema")   # only set when testing elsewhere
+except Exception:
+    SCHEMA = "workspace.casino"
 T = lambda name: spark.read.table(f"{SCHEMA}.{name}")
 RNG = np.random.default_rng(42)
 CHANGE_DATE = "2025-05-01"          # found in p1_comp_rate_daily: points per comp dollar drops overnight

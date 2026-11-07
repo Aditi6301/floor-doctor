@@ -21,6 +21,14 @@ from pyspark.sql import Window as W
 
 SRC = spark.conf.get("p1.source_schema", "workspace.casino")
 
+# The raw parquet timestamps load as TIMESTAMP_NTZ; Delta needs that feature switched on per table.
+_dlt_table = dlt.table
+def _table_with_ntz(*args, **kwargs):
+    props = dict(kwargs.pop("table_properties", None) or {})
+    props.setdefault("delta.feature.timestampNtz", "supported")
+    return _dlt_table(*args, table_properties=props, **kwargs)
+dlt.table = _table_with_ntz
+
 
 def bronze(name):
     return spark.read.table(f"{SRC}.bronze_{name}")
